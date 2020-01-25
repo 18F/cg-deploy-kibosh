@@ -83,13 +83,17 @@ applications would all pile up on the first Node.
 
 #### Nginx TCP Ingress
 
-The Nginx controller can actually act as a TCP router.  In this mode, it looks
-at ConfigMap entries to map separate external ports to internal Services.
+(**This is our current path.**)
+
+The Nginx controller [can actually act as a TCP
+router](https://kubernetes.github.io/ingress-nginx/user-guide/exposing-tcp-udp-services/).
+In this mode, it looks at ConfigMap entries to map separate external ports to
+internal Services.
 
 We could use this by injecting such a ConfigMap into each Helm deployment,
 giving each Redis service a unique external port on the Nginx Network Load
 Balancer.  We believe this configuration would work, but it does involve a bit
-more configuration and management on our end.  **This is our current path.**
+more configuration and management on our end.
 
 #### Single Load Balancer per Redis
 
