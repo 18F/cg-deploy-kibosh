@@ -20,10 +20,11 @@ We're using it to deploy Elasticsearch and Redis service instances.
 
 ## Architecture
 
+![architecture](architecture.jpg)
+
 ### Kibosh
 
-Kibosh itself is deployed as a Helm chart and runs inside the Kubernetes
-cluster.  Inception.
+Kibosh itself is deployed as a Cloud Foundry application.
 
 ### Ingress Constraints
 
