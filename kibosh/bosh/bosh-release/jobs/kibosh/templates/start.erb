@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+# If a command fails, exit immediately
+set -e
+
+LOG_DIR="/var/vcap/sys/log/kibosh"
+RUN_DIR="/var/vcap/sys/run/kibosh"
+PIDFILE="$RUN_DIR/kibosh.pid"
+
+export SECURITY_USER_NAME=<%= p("kibosh.username", "admin") %>
+export SECURITY_USER_PASSWORD=<%= p("kibosh.password") %>
+export PORT=<%= p("kibosh.port", "8080") %>
+export TILLER_NAMESPACE=kibosh
+export TILLER_IMAGE_SHA=<% p("kibosh.tiller_image_sha") %>
+export HELM_CHART_DIR=<%= p("kibosh.helm_chart_dir", "charts") %>
+<% if p("kibosh.operator_dir", "") != "" %>
+export OPERATOR_DIR=<%= p("kibosh.operator_dir") %>
+<% end %>
+export CA_DATA=<%= Shellwords.escape p("kibosh.ca_data") %>
+export SERVER=<%= p("kibosh.server", "https://127.0.0.1") %>
+export TOKEN=<%= p("kibosh.token") %>
+export STATE_DIR=<%= p("kibosh.key_value_store_dir", "/var/vcap/store/kibosh-key-value-store") %>
+
+<% if p("registry.server", "") != "" %>
+echo "'registry.server' is configured"
+export REG_SERVER=<%= p("registry.server") %>
+export REG_USER=<%= p("registry.username") %>
+export REG_PASS='<%= p("registry.password") %>'
+export REG_EMAIL='<%= p("registry.username") %>'
+<% end %>
+
+<% if p("kibosh.cf.api_url", "") != "" %>
+echo "'kibosh.cf.api_url' is configured"
+export CF_API_ADDRESS=<%= p("kibosh.cf.api_url") %>
+export CF_USERNAME=<%= p("kibosh.cf.admin_username") %>
+export CF_PASSWORD=<%= p("kibosh.cf.admin_password") %>
+export CF_BROKER_URL=<%= p("kibosh.cf.broker_url") %>
+export CF_BROKER_NAME=<%= p("kibosh.cf.broker_name") %>
+export CF_SKIP_SSL_VALIDATION=<%= p("kibosh.cf.skip_ssl_validation") %>
+<% end %>
+
+mkdir -p "$LOG_DIR" "$RUN_DIR" "$HELM_CHART_DIR" "$STATE_DIR"
+
+# If one of these directories is very large, chowning might take a very long time.
+# Consider only chowning if dir did not yet exist in the previous step
+chown -R vcap:vcap "$LOG_DIR" "$RUN_DIR" "$HELM_CHART_DIR" "$STATE_DIR"
+
+<% if p("kibosh.operator_dir", "") != "" %>
+mkdir -p "$OPERATOR_DIR"
+chown -R vcap:vcap "$OPERATOR_DIR"
+<% end %>
+
+# heed warnings from start-stop-daemon(8) about use of exec flag with interpreters
+/sbin/start-stop-daemon \
+  --pidfile "$PIDFILE" \
+  --make-pidfile \
+  --chuid vcap:vcap \
+  --start \
+  --exec /var/vcap/packages/kibosh_pkg/kibosh.linux \
+   >> "$LOG_DIR/kibosh.out.log" \
+  2>> "$LOG_DIR/kibosh.err.log"

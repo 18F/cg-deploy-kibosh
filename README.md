@@ -7,16 +7,107 @@ We're using it to deploy Elasticsearch and Redis service instances.
 
 ## Links
 
-**_TODO_**
-
 * [Kibosh](https://github.com/cf-platform-eng/kibosh)
 * Pipeline (is this CUI?)
-* Elasticsearch Helm chart
-* Redis Helm chart
+* Elasticsearch Helm chart - https://github.com/elastic/helm-charts/tree/master/elasticsearch
+* Redis Helm charts - https://github.com/helm/charts/tree/master/stable/redis-ha and https://github.com/helm/charts/tree/master/stable/redis
+
+## Deploying
+### Kubernetes Requirements
+Step 1 - Create kibosh user on targeted kbs
+
+Create the template `kibosh.yml`:
+``` 
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kibosh-broker-user
+  namespace: default
+secrets:
+- name: kibosh-broker-user-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kibosh-broker-user-secret
+  annotations:
+    kubernetes.io/service-account.name: kibosh-broker-user
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: kkibosh-broker-user
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: kibosh-broker-user
+  namespace: default
+```
+
+Step 2 - Create the user/role/secret:
+```
+kubectl apply -f kibosh.yml
+```
+Step 3 - Get kibosh-broker-user token for the broker:
+```
+kubectl describe secret kibosh-broker-user-secret
+```
+For token only
+```
+kubectl describe secret kibosh-broker-user-secret | grep token | awk '{print $2}'
+```
+
+### Push the Kibosh as a CF Application
+From the `kibosh` folder. 
+
+1. Update the `doc/sample-manifest.yaml` with required information.
+```
+---
+applications:
+  - name: kibosh_broker
+    memory: 256M
+    instances: 1
+    buildpacks:
+    - binary_buildpack
+    command: ./kibosh-0.2.49.linux
+    env:
+      SECURITY_USER_NAME: <USERNAME_FOR_BROKER>
+      SECURITY_USER_PASSWORD: <PASSWORD_FOR_BROKER>
+      TILLER_NAMESPACE: kube-system
+      CA_DATA: <CA_DATA_FROM_KUBE_SECRET>
+      SERVER:  <ELB_FOR_K8S>
+      TOKEN: <TOKEN_FROM_KUBE_SECRET>
+```
+
+CA_DATA, SERVER AND TOKEN can be taken from above requirements.
+
+Charts are ready and will be used when pushed along with Kibosh.
+
+2. CF Push with the following command
+```
+cf push -f docs/sample-manifest.yaml 
+```
+
+3. Register broker
+
+Follow this doc: https://docs.cloudfoundry.org/services/managing-service-brokers.html
+
+Once it's register, CF will talk to kibosh and will generate service plans automagically.
+
 
 ## Development
+Note: Pretty much all of the development is done via the Helm Charts
 
-**_TODO_**
+Inside each folder udner `charts`, there are several files that is used to configure kibosh's usage of the Helm Chart
+
+* `values.yaml` - This is where most of the configuration files for the service is done
+* `plans.yml` - This is where you specify the plans for each service
+* `bind.yml` - This is how you provide service credentials when the application is bound to the service
+* `plans` folder - This is where you can configure how big and plan specific configs. 
 
 ## Architecture
 

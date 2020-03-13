@@ -1,0 +1,3 @@
+- name: "standard-ha"
+  description: "Standard HA Redis plan with 10Gi Persistent Disk"
+  file: "standard-ha.yml"

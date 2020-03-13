@@ -1,0 +1,83 @@
+---
+
+name: bazaar
+
+releases:
+  - name: kibosh
+    version: latest
+  - name: example-chart
+    version: latest
+  - name: docker
+    version: latest
+
+
+stemcells:
+  - alias: ((stemcell))
+    os: ubuntu-trusty
+    version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 10
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+instance_groups:
+- name: loader
+  instances: 1
+  azs: [z1]
+  lifecycle: errand
+  jobs:
+    - name: load-image
+      release: kibosh
+    - name: example-chart
+      release: example-chart
+    - name: docker
+      release: docker
+  properties:
+    chart_path: /var/vcap/packages/example-chart/example-chart
+    registry:
+      server: ((registry-server))
+      username: ((registry-user))
+      password: ((registry-pass))
+  vm_type: default
+  stemcell: ((stemcell))
+  networks:
+    - name: default
+
+- name: kibosh_node
+  instances: 1
+  azs: [z1]
+  jobs:
+    - name: kibosh
+      release: kibosh
+    - name: bazaar
+      release: kibosh
+    - name: example-chart
+      release: example-chart
+  properties:
+    bazaar:
+      username: admin
+      password: ((kibosh-password))
+      helm_chart_dir: /var/vcap/store/repo
+    kibosh:
+      username: admin
+      password: ((kibosh-password))
+      helm_chart_dir: /var/vcap/store/repo
+      ca_data: ((k8s-cluster-ca-cert))
+      server: ((k8s-cluster-server))
+      token: ((k8s-cluster-token))
+    registry:
+      server: ((registry-server))
+      username: ((registry-user))
+      password: ((registry-pass))
+
+  vm_type: default
+  cloud_properties:
+    tags:
+      - allow-ssh
+  stemcell: ((stemcell))
+  persistent_disk_type: default
+  networks:
+    - name: default
+

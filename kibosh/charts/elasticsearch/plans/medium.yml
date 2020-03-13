@@ -1,0 +1,14 @@
+persistence:
+  size: 10Gi
+
+replicas: 1
+
+resources:
+  requests:
+    memory: 1792Mi
+    cpu: 0
+  limits: 
+    memory: 3584Mi
+    cpu: 1
+
+

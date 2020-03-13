@@ -1,0 +1,11 @@
+template: |
+  local filterfunc(j) = std.length(std.findSubstr("haproxy", j.name)) > 0;
+  local s1 = std.filter(filterfunc, $.services);
+  {
+    namespace: s1[0].metadata.namespace,
+    name: s1[0].metadata.labels.app,
+    host: s1[0].status.loadBalancer.ingress[0].hostname,
+    uri: "redis://:" + self.password + "@" + self.host + ":" + self.port,
+    password: "password",
+    port: 6379
+  }

@@ -1,0 +1,17 @@
+##persistence:
+ # size: 8Gi
+
+#master:
+#  resources:
+#    requests:
+#      memory: 384m
+#    limits:
+#      memory: 512m
+
+resources:
+  requests:
+    memory: 384m
+  limits:
+    memory: 512m
+
+

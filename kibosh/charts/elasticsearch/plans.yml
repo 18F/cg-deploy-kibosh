@@ -1,0 +1,6 @@
+- name: "medium"
+  description: "Medium Elasticsearch instance with 3GB of RAM and 1 AWS vCPU"
+  file: "medium.yml"
+- name: "medium-ha"
+  description: "HA Medium Elasticsearch instance with 3GB of RAM and 1 AWS vCPU"
+  file: "medium-ha.yml"

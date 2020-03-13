@@ -1,0 +1,10 @@
+template: |
+  {
+    namespace: $.services[0].metadata.namespace,
+    name: $.services[0].metadata.labels.chart,
+    hostname: self.name + "." + self.namespace + ".cg-staging-k8s.local",
+    uri: "http://" + self.username + ":" + self.password + "@" + self.hostname + ":" + self.port,
+    password: $.secrets[0].data['password'],
+    port: 80,
+    username: $.secrets[0].data['username']
+  }

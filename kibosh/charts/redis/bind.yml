@@ -1,0 +1,9 @@
+template: |
+  {
+    namespace: $.services[0].metadata.namespace,
+    name: $.services[0].metadata.labels.chart,
+    host: $.services[1].status.loadBalancer.ingress[0].hostname,
+    uri: "redis://:" + self.password + "@" + self.host + ":" + self.port,
+    password: "password",
+    port: 6379
+  }

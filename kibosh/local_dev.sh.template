@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+export CA_DATA='-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+'
+export SERVER='https://127.0.0.1:8443'
+export TOKEN=''
+
+export SECURITY_USER_NAME=admin
+export SECURITY_USER_PASSWORD=pass
+export TILLER_NAMESPACE=kibosh
+
+# tiller ssl good practice, but not strictly required in dev
+export CERT_DIR=$GOPATH/src/github.com/cf-platform-eng/kibosh/docs/tiller-ssl
+export TILLER_TLS_CA_CERT_FILE=$CERT_DIR/ca.cert.pem
+export TILLER_CERT_FILE=$CERT_DIR/tiller.cert.pem
+export TILLER_TLS_KEY_FILE=$CERT_DIR/tiller.key.pem
+export HELM_CERT_FILE=$CERT_DIR/helm.cert.pem
+export HELM_TLS_KEY_FILE=$CERT_DIR/helm.key.pem
+
+# REG_* settings are optional, for configuring a private docker registry
+export REG_SERVER='gcr.io'
+export REG_USER='_json_key'
+export REG_PASS='{
+  "type": "service_account",
+  ...
+}'
+export REG_EMAIL='_json_key'
+
+# CH_* settings are optional, see the readme for how to configure
+# CH_CRED_HUB_URL: https://credhub.service.cf.internal:8844
+# CH_UAA_URL: https://uaa.service.cf.internal:8443
+# CH_UAA_CLIENT_NAME: uaa-client
+# CH_UAA_CLIENT_SECRET: pass
+# CH_SKIP_SSL_VALIDATION: true
+
+go run cmd/kibosh/main.go
